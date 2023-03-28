@@ -22,8 +22,8 @@ struct Manga {
 struct Args {
     /// The manga to check for new chapters
     /// Checks all manga in the config file if not specified
-    #[structopt(short, long, default_value = "")]
-    manga_name: String,
+    #[structopt(short, long)] 
+    manga_name: Option<String>,
 
     /// The config file to use
     /// Defaults to .manga_update.json in your home directory
@@ -57,6 +57,7 @@ fn main() {
     let home_dir = dirs::home_dir().unwrap();
     let default_config_file = home_dir.join(".manga_update.json");
     let mut config_file: PathBuf = PathBuf::new();
+    let mut manga_name: String = String::new();
 
     // parse args
     let args = Args::parse();
@@ -64,6 +65,11 @@ fn main() {
     match args.config_file {
         Some(path) => config_file = path,
         None => config_file = default_config_file,
+    }
+
+    match args.manga_name {
+        Some(mn) => manga_name = mn,
+        None => manga_name = "".to_owned(),
     }
 
     // read config file
@@ -77,7 +83,7 @@ fn main() {
 
     let mut new_chapters: Vec<Manga> = Vec::new();
     for mut manga in manga_list {
-        if manga.short_name != args.manga_name && args.manga_name != "" {
+        if manga.short_name != manga_name && manga_name != "" {
             continue;
         }
         let chapter = manga.current_chapter + 1;
