@@ -11,6 +11,7 @@ use tokio;
 #[derive(Deserialize, Debug)]
 struct Manga {
     name: String,
+    short_name: String,
     url: String,
     current_chapter: u32,
 }
@@ -76,6 +77,9 @@ fn main() {
 
     let mut new_chapters: Vec<Manga> = Vec::new();
     for mut manga in manga_list {
+        if manga.short_name != args.manga_name && args.manga_name != "" {
+            continue;
+        }
         let chapter = manga.current_chapter + 1;
         let url = str::replace(&manga.url, "[CHAPTER]", &chapter.to_string());
         // println!("Checking {} for new chapter at url {}", manga.name, url);
