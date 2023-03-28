@@ -17,22 +17,43 @@ struct Manga {
 }
 
 #[derive(Parser, Debug, StructOpt)]
-#[command(name = "manga-update")]
+#[clap(name = "manga-update")]
 #[clap(author = "EldosHD")]
-struct Args {
+struct Cli {
     /// The manga to check for new chapters
     /// Checks all manga in the config file if not specified
-    #[structopt(short, long)] 
+    #[structopt(short, long, conflicts_with = "check")]
     manga_name: Option<String>,
 
     /// The config file to use
     /// Defaults to .manga_update.json in your home directory
-    #[arg(short, long)]
+    #[structopt(short, long)]
     config_file: Option<PathBuf>,
 
-    /// Add a new manga to the config file
-    #[structopt(short, long)]
+    /// Checks the config file for errors
+    #[structopt(long)]
+    check: bool,
+
+    /// add a new manga to the config file
+    #[structopt(short, long, requires = "manga_name")]
     add_manga: bool,
+
+    /// The url to check for new chapters
+    /// Must contain [CHAPTER] which will be replaced with the next chapter number
+    #[structopt(short, long, requires = "add_manga")]
+    url: Option<String>,
+
+    /// The short name to use for the manga
+    /// Must be unique
+    #[structopt(short, long, requires = "add_manga")]
+    short_name: Option<String>,
+
+    /// The current chapter number
+    /// Must be a number
+    /// Defaults to 0
+    /// Must be specified if adding a new manga
+    #[arg(short = 'C', long, requires = "add_manga")]
+    current_chapter: Option<u32>,
 }
 
 async fn check_url(url: &str) -> Result<bool, reqwest::Error> {
@@ -60,7 +81,7 @@ fn main() {
     let mut manga_name: String = String::new();
 
     // parse args
-    let args = Args::parse();
+    let args = Cli::parse();
     // set config file to default if not specified
     match args.config_file {
         Some(path) => config_file = path,
@@ -70,6 +91,54 @@ fn main() {
     match args.manga_name {
         Some(mn) => manga_name = mn,
         None => manga_name = "".to_owned(),
+    }
+
+    match args.check {
+        true => {
+            todo!("Check config file for errors");
+        }
+        false => {}
+    }
+
+    let add_manga = false;
+    let mut new_manga = Manga {
+        name: "".to_owned(),
+        short_name: "".to_owned(),
+        url: "".to_owned(),
+        current_chapter: 0,
+    };
+    match args.add_manga {
+        true => match args.url {
+            Some(url) => match args.short_name {
+                Some(short_name) => match args.current_chapter {
+                    Some(current_chapter) => {
+                        new_manga.name = manga_name.clone();
+                        new_manga.short_name = short_name.clone();
+                        new_manga.url = url.clone();
+                        new_manga.current_chapter = current_chapter.clone();
+                        println!("Adding new manga:");
+                        println!("Name: {}", new_manga.name);
+                        println!("Short name: {}", new_manga.short_name);
+                        println!("Url: {}", new_manga.url);
+                        println!("Current chapter: {}", new_manga.current_chapter);
+                        todo!("Add new manga to config file");
+                    }
+                    None => {
+                        println!("Please specify a current chapter");
+                        std::process::exit(1);
+                    }
+                },
+                None => {
+                    println!("Please specify a short name");
+                    std::process::exit(1);
+                }
+            },
+            None => {
+                println!("Please specify a url");
+                std::process::exit(1);
+            }
+        },
+        false => {}
     }
 
     // read config file
