@@ -1,6 +1,12 @@
 # manga-update
 A cli tool to check for new manga chapters written in rust
 
+## TODO:
+
+- Track progress of Manga
+- Add new website (like azura)
+- Add syntax check for configfile
+
 ## Config file
 
 Here is an example of a config file `~/.manga_update.json`.
